@@ -1,11 +1,40 @@
-#include "main.h"
 #include "driverlib/driverlib.h"
 #include "hal_LCD.h"
 #include "stdint.h"
-/*
- * This project contains some code samples that may be useful.
- *
- */
+
+#define TIMER_A_PERIOD  1000 //T = 1/f = (TIMER_A_PERIOD * 1 us)
+#define HIGH_COUNT      500  //Number of cycles signal is high (Duty Cycle = HIGH_COUNT / TIMER_A_PERIOD)
+
+//Output pin to buzzer
+#define PWM_PORT        GPIO_PORT_P1
+#define PWM_PIN         GPIO_PIN7
+//LaunchPad LEDs - LED1 unavailable when UART used
+#define LED1_PORT       GPIO_PORT_P1
+#define LED1_PIN        GPIO_PIN0
+#define LED2_PORT       GPIO_PORT_P4
+#define LED2_PIN        GPIO_PIN0
+//LaunchPad Pushbutton Switches
+#define SW1_PORT        GPIO_PORT_P1
+#define SW1_PIN         GPIO_PIN2
+#define SW2_PORT        GPIO_PORT_P2
+#define SW2_PIN         GPIO_PIN6
+//Input to ADC - in this case input A9 maps to pin P8.1
+#define ADC_IN_PORT     GPIO_PORT_P8
+#define ADC_IN_PIN      GPIO_PIN1
+#define ADC_IN_CHANNEL  ADC_INPUT_A9
+//UART
+#define UART_RX_PORT    GPIO_PORT_P1
+#define UART_TX_PORT    GPIO_PORT_P1
+#define UART_RX_PIN     GPIO_PIN1
+#define UART_TX_PIN     GPIO_PIN0
+
+void Init_GPIO(void);
+void Init_Clock(void);
+void Init_UART(void);
+void Init_PWM(void);
+void Init_ADC(void);
+
+Timer_A_outputPWMParam param; //Timer configuration data structure for PWM
 
 char ADCState = 0; //Busy state of the ADC
 int16_t ADCResult = 0; //Storage for the ADC conversion result
@@ -66,11 +95,18 @@ void main(void)
             buttonState = 0;                            //Capture new button state
         }
 
+        //test GPIO - working must set pin 5 as input
+/*        GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN7);
+        uint8_t tmp = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN5);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN7);
+        tmp = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN5);*/
+
         //Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
         {
+            //test ADC - working
             //volatile int32_t dvccValue = ((unsigned long)1023 * (unsigned long)150) / (unsigned long) (ADCResult);
-            volatile int32_t dvccValue = ADCResult * 3.22f; //3300/1024
+            int32_t dvccValue = ADCResult * 3.22f; //3300/1023
             char ths = dvccValue /1000;
             dvccValue -= ths * 1000;
             char hun = dvccValue /100;
@@ -116,6 +152,7 @@ void Init_GPIO(void)
 
     GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+    //GPIO_setAsInputPin(GPIO_PORT_P2, GPIO_PIN5);
     GPIO_setAsOutputPin(GPIO_PORT_P3, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
@@ -179,8 +216,8 @@ void Init_UART(void)
 
     //Configure UART pins, which maps them to a COM port over the USB cable
     //Set P1.0 and P1.1 as Secondary Module Function Input.
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1, GPIO_PRIMARY_MODULE_FUNCTION);
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN0, GPIO_PRIMARY_MODULE_FUNCTION);
+    GPIO_setAsPeripheralModuleFunctionInputPin(UART_RX_PORT, UART_RX_PIN, GPIO_PRIMARY_MODULE_FUNCTION);
+    GPIO_setAsPeripheralModuleFunctionOutputPin(UART_TX_PORT, UART_TX_PIN, GPIO_PRIMARY_MODULE_FUNCTION);
 
     /*
      * UART Configuration Parameter. These are the configuration parameters to
@@ -203,9 +240,7 @@ void Init_UART(void)
         param.overSampling      = 1;
 
     if(STATUS_FAIL == EUSCI_A_UART_init(EUSCI_A0_BASE, &param))
-    {
         return;
-    }
 
     EUSCI_A_UART_enable(EUSCI_A0_BASE);
 
@@ -225,9 +260,7 @@ void EUSCIA0_ISR(void)
     EUSCI_A_UART_clearInterrupt(EUSCI_A0_BASE, RxStatus);
 
     if (RxStatus)
-    {
         EUSCI_A_UART_transmitData(EUSCI_A0_BASE, EUSCI_A_UART_receiveData(EUSCI_A0_BASE));
-    }
 }
 
 /* PWM Initialization */
