@@ -42,8 +42,8 @@
 
 #include "hal_LCD.h"
 #include "string.h"
-#include "main.h"
-
+#include "driverlib/driverlib.h"
+#include "stdint.h"
 // LCD memory map for numeric digits
 const char digit[10][2] =
 {
