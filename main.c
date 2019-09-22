@@ -79,6 +79,13 @@ void main(void)
     //All done initializations - turn interrupts back on.
     __enable_interrupt();
 
+    while (true) {
+        GPIO_setOutputHighOnPin(GPIO_PORT_P1, GPIO_PIN3);
+        __delay_cycles(1000000);
+        GPIO_setOutputLowOnPin(GPIO_PORT_P1, GPIO_PIN3);
+        __delay_cycles(1000000);
+    }
+
     displayScrollText("ECE 298");
 
     while(1) //Do this when you want an infinite loop of code
