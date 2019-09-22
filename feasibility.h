@@ -28,5 +28,6 @@
 #define KEYPAD_ROW4_PIN     GPIO_PIN3
 
 void keyPadTest(void);
+void alarmTest(dvccValue);
 
 #endif /* FEASIBILITY_H_ */
