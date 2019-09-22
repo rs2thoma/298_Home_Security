@@ -27,7 +27,13 @@
 #define KEYPAD_ROW4_PORT    GPIO_PORT_P5
 #define KEYPAD_ROW4_PIN     GPIO_PIN3
 
+//LaunchPad Pushbutton Switches
+#define SW1_PORT        GPIO_PORT_P1
+#define SW1_PIN         GPIO_PIN2
+#define SW2_PORT        GPIO_PORT_P2
+#define SW2_PIN         GPIO_PIN6
+
 void keyPadTest(void);
-void alarmTest(dvccValue);
+void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param);
 
 #endif /* FEASIBILITY_H_ */

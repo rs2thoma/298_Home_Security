@@ -8,7 +8,7 @@
 void keyPadTest(void)
 {
     uint8_t num = 0xFF;
-    while (1)
+    while (GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 1)
     {
         showChar(num + '0', pos3);
         GPIO_setOutputLowOnPin(KEYPAD_COL1_PORT, KEYPAD_COL1_PIN);
@@ -80,7 +80,7 @@ void keyPadTest(void)
     }
 }
 
-void alarmTest(dvccValue) {
+void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
     if (dvccValue > 2300) {
         while(1) {
             GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN7);
