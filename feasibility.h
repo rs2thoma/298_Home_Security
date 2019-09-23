@@ -35,5 +35,6 @@
 
 void keyPadTest(void);
 void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param);
+void ultrasonicTest(void);
 
 #endif /* FEASIBILITY_H_ */

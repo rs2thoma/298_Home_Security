@@ -104,3 +104,22 @@ void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
         Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
     }
 }
+
+void ultrasonicTest(void) {
+    GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
+    uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
+    __delay_cycles(1000000);
+    uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
+
+    uint16_t diff = end - start;
+
+
+//    while(GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2 == 0) ;
+//
+//    uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
+//
+//    while(GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2 == 1) ;
+//
+//    uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
+
+}
