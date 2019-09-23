@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <launchConfiguration type="com.ti.ccstudio.debug.launchType.device.debugging">
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.C:\Users\Riley\workspace_v8\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_DEBUGGER_PROPERTIES.C:\Users\tiger\Documents\Git\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot; ?&gt;&#10;&lt;PropertyValues&gt;&#10;&#10;  &lt;property id=&quot;ConnectOnStartup&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;  &lt;property id=&quot;EnableInstalledBreakpoint&quot;&gt;&#10;    &lt;curValue&gt;1&lt;/curValue&gt;&#10;  &lt;/property&gt;&#10;&#10;&lt;/PropertyValues&gt;&#10;"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.C:\Users\Riley\workspace_v8\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="${build_artifact:298_Home_Security}"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.C:\Users\tiger\Documents\Git\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="${build_artifact:298_Home_Security}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.C:\Users\Riley\workspace_v8\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="298_Home_Security"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.C:\Users\tiger\Documents\Git\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="298_Home_Security"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:298_Home_Security}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.C:\Users\Riley\workspace_v8\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="C:/Users\Riley\workspace_v8\298_Home_Security\Debug\298_Home_Security.out"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.C:\Users\tiger\Documents\Git\298_Home_Security\targetConfigs\MSP430FR4133.ccxml.TI MSP430 USB1/MSP430" value="C:/Users\tiger\Documents\Git\298_Home_Security\Debug\298_Home_Security.out"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/298_Home_Security"/>
 </listAttribute>
