@@ -112,10 +112,10 @@ void ultrasonicTest(void) {
 
     Timer_A_initContinuousModeParam param = {
         .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
-        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1,
+        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_16,
         .timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE,
         .timerClear = TIMER_A_SKIP_CLEAR,
-        .startTimer = 1
+        .startTimer = 0
     };
 
     Timer_A_initContinuousMode(TIMER_A0_BASE, &param);
