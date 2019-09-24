@@ -107,11 +107,42 @@ void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
 
 void ultrasonicTest(void) {
     GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
-    uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
-    __delay_cycles(1000000);
-    uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
 
-    uint16_t diff = end - start;
+    Timer_A_initContinuousModeParam param = {
+        .clockSource = TIMER_A_CLOCKSOURCE_ACLK,
+        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_32,
+        .timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE,
+        .timerClear = TIMER_A_SKIP_CLEAR,
+        .startTimer = 1
+    };
+
+    Timer_A_initContinuousMode(TIMER_A0_BASE, &param);
+
+    while(1) {
+        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
+        volatile uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
+        __delay_cycles(1000000);
+        volatile uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
+        volatile uint16_t diff = end - start;
+        // __delay_cycles(1000000);
+        Timer_A_stop(TIMER_A0_BASE);
+        Timer_A_clear(TIMER_A0_BASE);
+
+        char ths = diff /1000;
+        diff -= ths * 1000;
+        char hun = diff /100;
+        diff -= hun * 100;
+        char ten = diff /10;
+        diff -= ten * 10;
+        char one = diff % 10;
+
+        showChar((char)(ths) + '0', pos1);
+        showChar((char)(hun) + '0', pos2);
+        showChar((char)(ten) + '0', pos3);
+        showChar((char)(one) + '0', pos4);
+        showChar('M', pos5);
+        showChar('S', pos6);
+    }
 
 
 //    while(GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2 == 0) ;
