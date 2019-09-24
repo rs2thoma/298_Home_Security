@@ -107,7 +107,7 @@ void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
 
 void ultrasonicTest(void) {
     GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
-    __delay_cycles(20);
+    __delay_cycles(10);
     GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
     Timer_A_initContinuousModeParam param = {
@@ -127,7 +127,7 @@ void ultrasonicTest(void) {
     showChar('S', pos5);
     showChar('T', pos6);
 
-    // wait for ultrasonic echo
+    // wait for ultrasonic echo signal
     while (GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2) == 0) ;
 
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
@@ -153,7 +153,7 @@ void ultrasonicTest(void) {
     showChar((char)(hun) + '0', pos2);
     showChar((char)(ten) + '0', pos3);
     showChar((char)(one) + '0', pos4);
-    showChar('M', pos5);
+    showChar('u', pos5);
     showChar('S', pos6);
 
     __delay_cycles(3000000);
