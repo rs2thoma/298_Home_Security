@@ -107,10 +107,12 @@ void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
 
 void ultrasonicTest(void) {
     GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN5);
+    __delay_cycles(20);
+    GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN5);
 
     Timer_A_initContinuousModeParam param = {
-        .clockSource = TIMER_A_CLOCKSOURCE_ACLK,
-        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_32,
+        .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
+        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1,
         .timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE,
         .timerClear = TIMER_A_SKIP_CLEAR,
         .startTimer = 1
