@@ -112,7 +112,7 @@ void ultrasonicTest(void) {
 
     Timer_A_initContinuousModeParam param = {
         .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
-        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_16,
+        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1,
         .timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE,
         .timerClear = TIMER_A_SKIP_CLEAR,
         .startTimer = 0
@@ -127,8 +127,16 @@ void ultrasonicTest(void) {
     showChar('S', pos5);
     showChar('T', pos6);
 
+    while(GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2) == 1) ;
+
     // wait for ultrasonic echo signal
-    while (GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2) == 0) ;
+    while (GPIO_getInputPinValue(GPIO_PORT_P8, GPIO_PIN2) == 0) {
+//        if (GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0) {
+//            clearLCD();
+//            __delay_cycles(1000000);
+//            return;
+//        }
+    }
 
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
     uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
@@ -138,9 +146,9 @@ void ultrasonicTest(void) {
 
     uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
     Timer_A_stop(TIMER_A0_BASE);
-    Timer_A_clear(TIMER_A0_BASE);
+    // Timer_A_clear(TIMER_A0_BASE);
 
-    uint16_t diff = end - start;
+    uint16_t diff = (end - start) >> 3;
     char ths = diff /1000;
     diff -= ths * 1000;
     char hun = diff /100;
@@ -153,10 +161,11 @@ void ultrasonicTest(void) {
     showChar((char)(hun) + '0', pos2);
     showChar((char)(ten) + '0', pos3);
     showChar((char)(one) + '0', pos4);
-    showChar('u', pos5);
+    showChar('U', pos5);
     showChar('S', pos6);
 
-    __delay_cycles(3000000);
+    __delay_cycles(5000000);
+    clearLCD();
 
 //    counter test
 //    while(1) {
