@@ -78,7 +78,7 @@ void main(void)
 
     displayScrollText("ECE 298");
 
-    ultrasonicTest();
+//    ultrasonicTest();
 
     keyPadTest();
 
