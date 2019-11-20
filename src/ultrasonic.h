@@ -23,7 +23,8 @@
 #define ULTRA4_ECHO_PORT    GPIO_PORT_P8
 #define ULTRA4_ECHO_PIN     GPIO_PIN2
 
-void ultraTrigger(void);
-uint32_t realultrasonicTest(void);
+void ultra_Trigger(void);
+uint16_t ultra1_getDistance(void);
+void ultra_setRef(void);
 
 #endif /* ULTRASONIC_H_ */

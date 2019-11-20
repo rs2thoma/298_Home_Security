@@ -78,8 +78,9 @@ void main(void)
     __enable_interrupt();
 
    // displayScrollText("ECE 298");
+    ultra_setRef();
     while(1)
-    realultrasonicTest();
+    ultra1_getDistance();
 
     keyPadTest();
 
