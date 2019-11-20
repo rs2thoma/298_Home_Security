@@ -47,23 +47,23 @@ void ultra_Trigger(void)
     GPIO_setOutputLowOnPin(ULTRA_TRIG_PORT, ULTRA_TRIG_PIN);
 }
 
-uint16_t ultra1_getDistance(void)
+uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin)
 {
     ultra_Trigger();
     // wait for ultrasonic echo signal
-    while (GPIO_getInputPinValue(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN) == 0);
+    while (GPIO_getInputPinValue(port, pin) == 0);
 
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
     uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
     // wait until echo ends
-    while(GPIO_getInputPinValue(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN) == 1) ;
+    while(GPIO_getInputPinValue(port, pin) == 1) ;
 
     uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
     Timer_A_stop(TIMER_A0_BASE);
     // Timer_A_clear(TIMER_A0_BASE);
 
     uint16_t diff = (end - start) >> 3;
-    /*char ths = diff /1000;
+    char ths = diff /1000;
     diff -= ths * 1000;
     char hun = diff /100;
     diff -= hun * 100;
@@ -76,10 +76,9 @@ uint16_t ultra1_getDistance(void)
     showChar((char)(ten) + '0', pos3);
     showChar((char)(one) + '0', pos4);
     showChar('U', pos5);
-    showChar('S', pos6);*/
+    showChar('S', pos6);
 
 //    __delay_cycles(5000000);
 
     return diff;
 }
-

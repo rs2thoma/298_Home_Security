@@ -20,7 +20,7 @@ typedef enum
     ULTRA2_ECHO_PORT = GPIO_PORT_P5,
     ULTRA3_ECHO_PORT = GPIO_PORT_P2,
     ULTRA4_ECHO_PORT = GPIO_PORT_P8
-} ULTRA_PORTS;
+} ULTRA_PORT;
 
 typedef enum
 {
@@ -29,7 +29,7 @@ typedef enum
     ULTRA2_ECHO_PIN = GPIO_PIN1,
     ULTRA3_ECHO_PIN = GPIO_PIN5,
     ULTRA4_ECHO_PIN = GPIO_PIN2
-} ULTRA_PINS;
+} ULTRA_PIN;
 
 /*#define ULTRA_TRIG_PORT     GPIO_PORT_P2
 #define ULTRA_TRIG_PIN      GPIO_PIN7
@@ -43,7 +43,7 @@ typedef enum
 #define ULTRA4_ECHO_PIN     GPIO_PIN2*/
 
 void ultra_Trigger(void);
-uint16_t ultra1_getDistance(void);
+uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin);
 void ultra_setRef(void);
 
 #endif /* ULTRASONIC_H_ */
