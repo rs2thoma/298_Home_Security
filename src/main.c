@@ -2,6 +2,7 @@
 #include "hal_LCD.h"
 #include "stdint.h"
 #include "feasibility.h"
+#include "ultrasonic.h"
 
 #define TIMER_A_PERIOD  1000 //T = 1/f = (TIMER_A_PERIOD * 1 us)
 #define HIGH_COUNT      500  //Number of cycles signal is high (Duty Cycle = HIGH_COUNT / TIMER_A_PERIOD)
@@ -77,8 +78,8 @@ void main(void)
     __enable_interrupt();
 
     displayScrollText("ECE 298");
-
-//    ultrasonicTest();
+    while(1)
+    realultrasonicTest();
 
     keyPadTest();
 
