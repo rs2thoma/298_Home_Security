@@ -10,7 +10,7 @@
 
 #include "stdint.h"
 
-#define ULTRA_TRIG_DELAY    10 //10us
+#define ULTRA_TRIG_DELAY    20 //10us
 
 #define ULTRA_TRIG_PORT     GPIO_PORT_P2
 #define ULTRA_TRIG_PIN      GPIO_PIN7

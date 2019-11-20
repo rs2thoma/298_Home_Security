@@ -35,6 +35,7 @@ uint32_t realultrasonicTest(void)
     showChar('S', pos5);
     showChar('T', pos6);
 
+    ultraTrigger();
     // wait for ultrasonic echo signal
     while (GPIO_getInputPinValue(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN) == 0);
 
@@ -63,8 +64,7 @@ uint32_t realultrasonicTest(void)
     showChar('U', pos5);
     showChar('S', pos6);
 
-    __delay_cycles(5000000);
-    clearLCD();
+//    __delay_cycles(5000000);
 
     return 0;
 }
