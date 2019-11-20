@@ -36,7 +36,7 @@ void ultra_setRef(void)
     Timer_A_stop(TIMER_A0_BASE);
     // Timer_A_clear(TIMER_A0_BASE);
 
-    uint16_t diff = (end - start) >> 3;
+    uint16_t diff = end - start;
     ULTRA1_REF = diff;
 }
 
@@ -62,8 +62,9 @@ uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin)
     Timer_A_stop(TIMER_A0_BASE);
     // Timer_A_clear(TIMER_A0_BASE);
 
+    //display only works if diff is shifted
     uint16_t diff = (end - start) >> 3;
-    char ths = diff /1000;
+    /*char ths = diff /1000;
     diff -= ths * 1000;
     char hun = diff /100;
     diff -= hun * 100;
@@ -76,7 +77,7 @@ uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin)
     showChar((char)(ten) + '0', pos3);
     showChar((char)(one) + '0', pos4);
     showChar('U', pos5);
-    showChar('S', pos6);
+    showChar('S', pos6);*/
 
 //    __delay_cycles(5000000);
 
