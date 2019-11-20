@@ -83,7 +83,7 @@ void keyPadTest(void)
 void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
     if (dvccValue > 2300) {
         while(1) {
-            GPIO_setOutputHighOnPin(GPIO_PORT_P2, GPIO_PIN7);
+            GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
             Timer_A_outputPWM(TIMER_A0_BASE, &param);   //Turn on PWM
 
             if (GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0) {
@@ -91,7 +91,7 @@ void alarmTest(int32_t dvccValue, Timer_A_outputPWMParam param) {
             }
             __delay_cycles(1000000);
 
-            GPIO_setOutputLowOnPin(GPIO_PORT_P2, GPIO_PIN7);
+            GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
             Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
 
             if (GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0) {
