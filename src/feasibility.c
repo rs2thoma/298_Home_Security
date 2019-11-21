@@ -4,7 +4,9 @@
  *  Created on: Sep 22, 2019
  *      Author: Riley
  */
+
 #include "feasibility.h"
+
 void keyPadTest(void)
 {
     uint8_t num = 0xFF;

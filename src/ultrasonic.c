@@ -4,6 +4,7 @@
  *  Created on: Nov 19, 2019
  *      Author: Riley
  */
+
 #include "ultrasonic.h"
 #include "driverlib/driverlib.h"
 #include "hal_LCD.h"
@@ -11,7 +12,7 @@
 
 static uint16_t ULTRA1_REF = 0;
 
-uint16_t getRefDist()
+uint16_t ultra_getRefDist()
 {
     return ULTRA1_REF;
 }

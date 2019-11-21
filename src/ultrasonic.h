@@ -31,8 +31,9 @@ typedef enum
     ULTRA4_ECHO_PIN = GPIO_PIN2
 } ULTRA_PIN;
 
+uint16_t ultra_getRefDist();
+void ultra_setRef(void);
 void ultra_Trigger(void);
 uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin);
-void ultra_setRef(void);
 
 #endif /* ULTRASONIC_H_ */
