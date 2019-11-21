@@ -100,5 +100,5 @@ const uint16_t* ultra_getDistances()
         dists[i] = diff;
     }
 
-    return *dists;
+    return dists;
 }
