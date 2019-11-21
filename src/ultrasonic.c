@@ -23,11 +23,16 @@ const uint16_t* ultra_getRefs()
 void ultra_setRefs(void)
 {
     uint8_t i;
-    for(i = 0; i < NUM_ZONES; i++)
+    for(i = 0; i < 1; i++)
     {
+//        uint32_t timeout = 300000;
         ultra_Trigger();
         // wait for ultrasonic echo signal
-        while (GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 0) ;
+        while (GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 0) {
+//            timeout--;
+//
+//            if (timeout == 0) break;
+        }
 
 //        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
         uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
@@ -53,11 +58,16 @@ void ultra_Trigger(void)
 const uint16_t* ultra_getDistances()
 {
     uint8_t i;
-    for(i = 0; i < NUM_ZONES; i++)
+    for(i = 0; i < 1; i++)
     {
+//        uint32_t timeout = 300000;
         ultra_Trigger();
         // wait for ultrasonic echo signal
-        while (GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 0) ;
+        while (GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 0) {
+//            timeout--;
+//
+//            if (timeout == 0) break;
+        }
 
 //        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
         uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);

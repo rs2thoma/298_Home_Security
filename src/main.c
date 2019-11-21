@@ -96,29 +96,34 @@ void main(void)
     uint16_t timer = Timer_A_getCounterValue(TIMER_A0_BASE);
     uint16_t prevTime = timer;
 
-    //ultra_setRefs();
+    ultra_setRefs();
     const uint16_t* ultraRefs = ultra_getRefs();
-    uint16_t micRef = 600;
+    uint16_t micRef = 700;
     bool alarmOn = false;
-    bool ledOn = false;
+    bool first = false;
 
     __delay_cycles(1000000);
 
     while(1)
     {
-        /*const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
-
-        uint8_t i;
-        for(i = 0; i < NUM_ZONES; i++) {
-            volatile uint16_t dist = dists[i];
-            volatile uint16_t ref = ultraRefs[i];
-
-            if ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 2))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 2)))) {
-                alarmOn = true;
-
-                // display triggered zone
-            }
-        }*/
+//        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+//
+//        uint8_t i;
+//        for(i = 0; i < NUM_ZONES; i++) {
+//            volatile uint16_t dist = dists[i];
+//            volatile uint16_t ref = ultraRefs[i];
+//
+//            if ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 1))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 1)))) {
+//                if (!alarmOn) {
+//                    first = true;
+//                }
+//
+//                alarmOn = true;
+//
+//
+//                // display triggered zone
+//            }
+//        }
 
 //        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
@@ -126,8 +131,9 @@ void main(void)
 
             int32_t noise = ADCResult; //3300/1023
 
-            if (noise > micRef) {
+            if (noise > micRef && !alarmOn) {
                 alarmOn = true;
+                first = true;
             }
 
 //            char ths = noise /1000;
@@ -149,7 +155,8 @@ void main(void)
         }
 
         // toggle LED every second
-        if (alarmOn/* && (timer - prevTime > 65000)*/) {
+        if (alarmOn && first/* && (timer - prevTime > 65000)*/) {
+            first = false;
             prevTime = timer;
 
            // if (ledOn) {
@@ -169,13 +176,15 @@ void main(void)
             if(keypad_verifyCode())
             {
                 alarmOn = false;
+                first = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
-//                ultra_setRefs();
-//                ultraRefs = ultra_getRefs();
-                micRef = ADCResult;
+                ultra_setRefs();
+                ultraRefs = ultra_getRefs();
+//                micRef = 700;
             }
         }
+
         timer = Timer_A_getCounterValue(TIMER_A0_BASE);
        // __delay_cycles(1000000);
     }
