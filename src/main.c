@@ -79,8 +79,15 @@ void main(void)
 
    // displayScrollText("ECE 298");
     ultra_setRef();
+    ultra_setRef();
+    uint16_t ref = getRefDist();
+
     while(1)
-    ultra_getDistance(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+    {
+    uint16_t dist = ultra_getDistance(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+    if(dist > (ref *1.1))
+        ultra_setRef();
+    }
 
     keyPadTest();
 

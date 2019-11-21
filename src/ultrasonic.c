@@ -9,7 +9,12 @@
 #include "hal_LCD.h"
 #include "stdint.h"
 
-uint16_t ULTRA1_REF = 0;
+static uint16_t ULTRA1_REF = 0;
+
+uint16_t getRefDist()
+{
+    return ULTRA1_REF;
+}
 
 void ultra_setRef(void)
 {
@@ -63,7 +68,7 @@ uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin)
     // Timer_A_clear(TIMER_A0_BASE);
 
     //display only works if diff is shifted
-    uint16_t diff = (end - start) >> 3;
+    uint16_t diff = end - start;
     /*char ths = diff /1000;
     diff -= ths * 1000;
     char hun = diff /100;
