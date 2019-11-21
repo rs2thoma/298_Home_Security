@@ -38,7 +38,10 @@ bool keypad_verifyCode(void)
     }
     for(i = 0; i < CODE_SIZE; i++)
         if(code[i] != ALARM_CODE[i])
+            clearLCD();
             return false;
+
+    clearLCD();
     return true;
 }
 
@@ -72,8 +75,8 @@ bool keypad_stopAlarmInput(void)
     GPIO_setOutputLowOnPin(KEYPAD_COL2_PORT, KEYPAD_COL2_PIN);
 
     GPIO_setOutputHighOnPin(KEYPAD_COL3_PORT, KEYPAD_COL3_PIN);
-    bool astPressed = GPIO_getInputPinValue(KEYPAD_ROW4_PORT, KEYPAD_ROW4_PIN)
-    GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
+    bool astPressed = GPIO_getInputPinValue(KEYPAD_ROW4_PORT, KEYPAD_ROW4_PIN);
+    GPIO_setOutputLowOnPin(KEYPAD_COL3_PORT, KEYPAD_COL3_PIN);
     return astPressed;
 }
 
