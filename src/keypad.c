@@ -30,7 +30,10 @@ bool keypad_verifyCode(void)
     for(i = 0; i < CODE_SIZE; i++)
     {
         while(code[i] == '#' || code[i] == '*')
+        {
             code[i] = keypad_getInput();
+            __delay_cycles(100);
+        }
         showChar(code[i], codeLEDPos[i]);
     }
     for(i = 0; i < CODE_SIZE; i++)
@@ -63,6 +66,16 @@ char keypad_getInput(void)
     }
 }
 
+bool keypad_stopAlarmInput(void)
+{
+    GPIO_setOutputLowOnPin(KEYPAD_COL1_PORT, KEYPAD_COL1_PIN);
+    GPIO_setOutputLowOnPin(KEYPAD_COL2_PORT, KEYPAD_COL2_PIN);
+
+    GPIO_setOutputHighOnPin(KEYPAD_COL3_PORT, KEYPAD_COL3_PIN);
+    bool astPressed = GPIO_getInputPinValue(KEYPAD_ROW4_PORT, KEYPAD_ROW4_PIN)
+    GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
+    return astPressed;
+}
 
 /*uint8_t keypad_getInput(void)
 {

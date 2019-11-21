@@ -28,5 +28,6 @@
 
 char keypad_getInput(void);
 bool keypad_verifyCode(void);
+bool keypad_stopAlarmInput(void);
 
 #endif /* KEYPAD_H_ */

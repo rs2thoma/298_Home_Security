@@ -139,15 +139,21 @@ void main(void)
                 GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_outputPWM(TIMER_A0_BASE, &param);
             }
+            ledOn = !ledOn;
         }
 
         // alarm re-armed
-        if (false) {
-            GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
-            Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
-            ultra_setRefs();
-            ultraRefs = ultra_getRefs();
-            micRef = ADCResult;
+        if(keypad_stopAlarmInput())
+        {
+            __delay_cycles(100);
+            if(keypad_verifyCode())
+            {
+                GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+                Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
+                ultra_setRefs();
+                ultraRefs = ultra_getRefs();
+                micRef = ADCResult;
+            }
         }
     }
 
