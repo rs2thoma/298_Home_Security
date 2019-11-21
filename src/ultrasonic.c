@@ -23,7 +23,7 @@ const uint16_t* ultra_getRefs()
 void ultra_setRefs(void)
 {
     uint8_t i;
-    for(i = 0; i < 1; i++)
+    for(i = 0; i < NUM_ZONES; i++)
     {
         ultra_Trigger();
         // wait for ultrasonic echo signal
@@ -53,7 +53,7 @@ void ultra_Trigger(void)
 const uint16_t* ultra_getDistances()
 {
     uint8_t i;
-    for(i = 0; i < 1; i++)
+    for(i = 0; i < NUM_ZONES; i++)
     {
         ultra_Trigger();
         // wait for ultrasonic echo signal

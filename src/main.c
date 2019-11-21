@@ -96,9 +96,9 @@ void main(void)
     uint16_t timer = Timer_A_getCounterValue(TIMER_A0_BASE);
     uint16_t prevTime = timer;
 
-    ultra_setRefs();
+    //ultra_setRefs();
     const uint16_t* ultraRefs = ultra_getRefs();
-    uint16_t micRef = 0;
+    uint16_t micRef = 600;
     bool alarmOn = false;
     bool ledOn = false;
 
@@ -106,7 +106,7 @@ void main(void)
 
     while(1)
     {
-        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+        /*const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
 
         uint8_t i;
         for(i = 0; i < NUM_ZONES; i++) {
@@ -118,54 +118,52 @@ void main(void)
 
                 // display triggered zone
             }
-        }
+        }*/
 
-        //Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
-//        if (ADCState == 0)
-//        {
-//
-//            int32_t noise = ADCResult; //3300/1023
-//
-//            if (noise > (micRef + micRef >> 1)) {
-//                alarmOn = true;
-//            }
-//
-////            char ths = noise /1000;
-////            noise -= ths * 1000;
-////            char hun = noise /100;
-////            noise -= hun * 100;
-////            char ten = noise /10;
-////            noise -= ten * 10;
-////            char one = noise % 10;
-//
-////            showChar((char)(ths) + '0', pos3);
-////            showChar((char)(hun) + '0', pos4);
-////            showChar((char)(ten) + '0', pos5);
-////            showChar((char)(one) + '0', pos6);
-//
-////            showHex((int)ADCResult); //Put the previous result on the LCD display
-//            ADCState = 1; //Set flag to indicate ADC is busy - ADC ISR (interrupt) will clear it
-//            ADC_startConversion(ADC_BASE, ADC_SINGLECHANNEL);
-//            while(micRef == 0)
-//                micRef = ADCResult;
-//        }
+//        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
+        if (ADCState == 0)
+        {
+
+            int32_t noise = ADCResult; //3300/1023
+
+            if (noise > micRef) {
+                alarmOn = true;
+            }
+
+//            char ths = noise /1000;
+//            noise -= ths * 1000;
+//            char hun = noise /100;
+//            noise -= hun * 100;
+//            char ten = noise /10;
+//            noise -= ten * 10;
+//            char one = noise % 10;
+
+//            showChar((char)(ths) + '0', pos3);
+//            showChar((char)(hun) + '0', pos4);
+//            showChar((char)(ten) + '0', pos5);
+//            showChar((char)(one) + '0', pos6);
+
+//            showHex((int)ADCResult); //Put the previous result on the LCD display
+            ADCState = 1; //Set flag to indicate ADC is busy - ADC ISR (interrupt) will clear it
+            ADC_startConversion(ADC_BASE, ADC_SINGLECHANNEL);
+        }
 
         // toggle LED every second
         if (alarmOn/* && (timer - prevTime > 65000)*/) {
             prevTime = timer;
 
-            if (ledOn) {
-                GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
-                Timer_A_stop(TIMER_A0_BASE);
-            } else {
+           // if (ledOn) {
+             //   GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+               // Timer_A_stop(TIMER_A0_BASE);
+            //} else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_outputPWM(TIMER_A0_BASE, &param);
-            }
-            ledOn = !ledOn;
+            //}
+            //ledOn = !ledOn;
         }
 
         // alarm re-armed
-        if(keypad_stopAlarmInput())
+        if(keypad_stopAlarmInput() && alarmOn)
         {
             __delay_cycles(100);
             if(keypad_verifyCode())
@@ -173,13 +171,13 @@ void main(void)
                 alarmOn = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
-                ultra_setRefs();
-                ultraRefs = ultra_getRefs();
+//                ultra_setRefs();
+//                ultraRefs = ultra_getRefs();
                 micRef = ADCResult;
             }
         }
         timer = Timer_A_getCounterValue(TIMER_A0_BASE);
-        __delay_cycles(1000000);
+       // __delay_cycles(1000000);
     }
 
     /*

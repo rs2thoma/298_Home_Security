@@ -25,6 +25,7 @@ static const uint8_t codeLEDPos[CODE_SIZE] = {pos3, pos4, pos5, pos6};
 
 bool keypad_verifyCode(void)
 {
+    displayScrollText("ENTER CODE");
     char code[CODE_SIZE] = {'#', '#', '#', '#'};
     uint8_t i;
     for(i = 0; i < CODE_SIZE; i++)
@@ -32,16 +33,22 @@ bool keypad_verifyCode(void)
         while(code[i] == '#' || code[i] == '*')
         {
             code[i] = keypad_getInput();
-            __delay_cycles(100);
+            __delay_cycles(300000);
         }
         showChar(code[i], codeLEDPos[i]);
     }
     for(i = 0; i < CODE_SIZE; i++)
+    {
         if(code[i] != ALARM_CODE[i])
-            clearLCD();
+        {
+            __delay_cycles(500000);
+            displayScrollText("WRONG CODE");
             return false;
+        }
+    }
 
-    clearLCD();
+    __delay_cycles(500000);
+    displayScrollText("CORRECT CODE");
     return true;
 }
 
@@ -63,7 +70,7 @@ char keypad_getInput(void)
                 if (GPIO_getInputPinValue(rowPorts[j], rowPins[j]) == 1)
                 {
                     GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
-                    return keyValue[i * NUM_COLS + j];
+                    return keyValue[i * NUM_ROWS + j];
                 }
             }
             GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
