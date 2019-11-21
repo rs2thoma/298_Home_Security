@@ -59,11 +59,13 @@ char keypad_getInput(void)
             GPIO_setOutputHighOnPin(colPorts[i], colPins[i]);
             uint16_t j;
             for (j = 0; j < NUM_ROWS; j++)
+            {
                 if (GPIO_getInputPinValue(rowPorts[j], rowPins[j]) == 1)
                 {
                     GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
                     return keyValue[i * NUM_COLS + j];
                 }
+            }
             GPIO_setOutputLowOnPin(colPorts[i], colPins[i]);
         }
     }
@@ -75,9 +77,9 @@ bool keypad_stopAlarmInput(void)
     GPIO_setOutputLowOnPin(KEYPAD_COL2_PORT, KEYPAD_COL2_PIN);
 
     GPIO_setOutputHighOnPin(KEYPAD_COL3_PORT, KEYPAD_COL3_PIN);
-    bool astPressed = GPIO_getInputPinValue(KEYPAD_ROW4_PORT, KEYPAD_ROW4_PIN);
+    bool pressed = GPIO_getInputPinValue(KEYPAD_ROW4_PORT, KEYPAD_ROW4_PIN);
     GPIO_setOutputLowOnPin(KEYPAD_COL3_PORT, KEYPAD_COL3_PIN);
-    return astPressed;
+    return pressed;
 }
 
 /*uint8_t keypad_getInput(void)

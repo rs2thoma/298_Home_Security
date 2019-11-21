@@ -2,12 +2,16 @@
 #include "hal_LCD.h"
 #include "stdint.h"
 #include "stdbool.h"
-#include "feasibility.h"
 #include "ultrasonic.h"
+#include "keypad.h"
 
 #define TIMER_A_PERIOD  1000 //T = 1/f = (TIMER_A_PERIOD * 1 us)
 #define HIGH_COUNT      500  //Number of cycles signal is high (Duty Cycle = HIGH_COUNT / TIMER_A_PERIOD)
 
+#define SW1_PORT        GPIO_PORT_P1
+#define SW1_PIN         GPIO_PIN2
+#define SW2_PORT        GPIO_PORT_P2
+#define SW2_PIN         GPIO_PIN6
 //Output pin to buzzer
 #define PWM_PORT        GPIO_PORT_P1
 #define PWM_PIN         GPIO_PIN7
