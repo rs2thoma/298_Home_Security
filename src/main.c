@@ -80,8 +80,8 @@ void main(void)
 
    // displayScrollText("ECE 298");
     ultra_setRefs();
-    uint16_t* ultraRefs = ultra_getRefs();
-    uint16_t micRef = ADCResult * 3.22f;
+    const uint16_t* ultraRefs = ultra_getRefs();
+    uint16_t micRef = ADCResult;
     bool alarmOn = false;
     bool ledOn = false;
     uint16_t timer = 0;
@@ -104,7 +104,7 @@ void main(void)
         if (ADCState == 0)
         {
 
-            int32_t noise = ADCResult * 3.22f; //3300/1023
+            int32_t noise = ADCResult; //3300/1023
 
             if (noise > micRef * 1.25) {
                 alarmOn = true;
@@ -129,7 +129,7 @@ void main(void)
         }
 
         // toggle LED every second
-        if (alarmOn && timer - prevTime > 1000) {
+        if (alarmOn && (timer - prevTime > 1000)) {
             prevTime = timer;
 
             if (ledOn) {
@@ -147,7 +147,7 @@ void main(void)
             Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
             ultra_setRefs();
             ultraRefs = ultra_getRefs();
-            micRef = ADCResult * 3.22f;
+            micRef = ADCResult;
         }
     }
 
