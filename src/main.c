@@ -79,8 +79,8 @@ void main(void)
     __enable_interrupt();
 
    // displayScrollText("ECE 298");
-    ultra_setRef();
-    uint16_t ultraRef = ultra_getRefDist();
+    ultra_setRefs();
+    uint16_t* ultraRefs = ultra_getRefs();
     uint16_t micRef = ADCResult * 3.22f;
     bool alarmOn = false;
     bool ledOn = false;
@@ -89,10 +89,15 @@ void main(void)
 
     while(1)
     {
-        uint16_t dist = ultra_getDistance(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+        uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
 
-        if (dist > ultraRef * 1.1) {
-            alarmOn = true;
+        uint8_t i;
+        for(i = 0; i < NUM_ZONES; i++) {
+            if (dists[i] > ultraRefs[i] * 1.1) {
+                alarmOn = true;
+
+                // display triggered zone
+            }
         }
 
         //Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
@@ -140,7 +145,8 @@ void main(void)
         if (false) {
             GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
             Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
-            ultraRef = ultra_getRefDist();
+            ultra_setRefs();
+            ultraRefs = ultra_getRefs();
             micRef = ADCResult * 3.22f;
         }
     }

@@ -11,6 +11,7 @@
 #include "driverlib/driverlib.h"
 #include "stdint.h"
 
+#define NUM_ZONES   4
 #define ULTRA_TRIG_DELAY    20 //10us
 
 typedef enum
@@ -31,9 +32,9 @@ typedef enum
     ULTRA4_ECHO_PIN = GPIO_PIN2
 } ULTRA_PIN;
 
-uint16_t ultra_getRefDist();
-void ultra_setRef(void);
+void ultra_setRefs(void);
+const uint16_t* ultra_getRefs();
 void ultra_Trigger(void);
-uint16_t ultra_getDistance(ULTRA_PORT port, ULTRA_PIN pin);
+const uint16_t* ultra_getDistances();
 
 #endif /* ULTRASONIC_H_ */
