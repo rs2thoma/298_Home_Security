@@ -1,4 +1,5 @@
 #include "driverlib/driverlib.h"
+#include "driverlib/rtc.h"
 #include "hal_LCD.h"
 #include "stdint.h"
 #include "stdbool.h"
@@ -41,9 +42,17 @@ Timer_A_outputPWMParam param; //Timer configuration data structure for PWM
 
 char ADCState = 0; //Busy state of the ADC
 int16_t ADCResult = 0; //Storage for the ADC conversion result
+uint32_t seconds = 0;
 
 void main(void)
 {
+
+    RTC_init(RTC_BASE, 1024,RTC_CLOCKPREDIVIDER_1024);
+    RTC_clearInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT_FLAG);
+    RTC_enableInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT);
+
+    //RTC_start(RTC_BASE, RTC_CLOCKSOURCE_XT1CLK);
+    RTC_start(RTC_BASE, RTC_CLOCKSOURCE_SMCLK);
 //    char buttonState = 0; //Current button press state (to allow edge detection)
 
     /*
@@ -98,7 +107,7 @@ void main(void)
 
     ultra_setRefs();
     const uint16_t* ultraRefs = ultra_getRefs();
-    uint16_t micRef = 700;
+    const uint16_t micRef = 700;
     bool alarmOn = false;
     bool first = false;
 
@@ -106,24 +115,24 @@ void main(void)
 
     while(1)
     {
-//        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
-//
-//        uint8_t i;
-//        for(i = 0; i < NUM_ZONES; i++) {
-//            volatile uint16_t dist = dists[i];
-//            volatile uint16_t ref = ultraRefs[i];
-//
-//            if ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 1))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 1)))) {
-//                if (!alarmOn) {
-//                    first = true;
-//                }
-//
-//                alarmOn = true;
-//
-//
-//                // display triggered zone
-//            }
-//        }
+        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+
+        uint8_t i;
+        for(i = 0; i < NUM_ZONES; i++) {
+            volatile uint16_t dist = dists[i];
+            volatile uint16_t ref = ultraRefs[i];
+
+            if (dists[i] != 0 && ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 2))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 2))))) {
+                if (!alarmOn) {
+                    first = true;
+                }
+
+                alarmOn = true;
+
+
+                // display triggered zone
+            }
+        }
 
 //        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
@@ -165,6 +174,7 @@ void main(void)
             //} else {
                 GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_outputPWM(TIMER_A0_BASE, &param);
+
             //}
             //ledOn = !ledOn;
         }
@@ -179,6 +189,8 @@ void main(void)
                 first = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
                 Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
+                Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
+
                 ultra_setRefs();
                 ultraRefs = ultra_getRefs();
 //                micRef = 700;
@@ -186,6 +198,7 @@ void main(void)
         }
 
         timer = Timer_A_getCounterValue(TIMER_A0_BASE);
+
        // __delay_cycles(1000000);
     }
 
@@ -260,7 +273,7 @@ void Init_Clock(void)
 
     /*
      * On the LaunchPad, there is a 32.768 kHz crystal oscillator used as a
-     * Real Time Clock (RTC). It is a quartz crystal connected to a circuit that
+     * Real Time Clock (RTC). It i+s a quartz crystal connected to a circuit that
      * resonates it. Since the frequency is a power of two, you can use the signal
      * to drive a counter, and you know that the bits represent binary fractions
      * of one second. You can then have the RTC module throw an interrupt based
@@ -435,3 +448,12 @@ void ADC_ISR(void)
         ADCResult = ADC_getResults(ADC_BASE);
     }
 }
+
+
+#pragma vector=RTC_VECTOR
+__interrupt
+void handle_rtc_interrupt(void)
+{
+    RTC_clearInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT_FLAG);
+    seconds++;
+}//ISR
