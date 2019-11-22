@@ -26,13 +26,13 @@ void ultra_setRefs(void)
     for(i = 0; i < NUM_ZONES; i++)
     {
         __delay_cycles(1000);
-//        uint32_t timeout = 300000;
+        uint32_t timeout = 30000;
         ultra_Trigger();
         // wait for ultrasonic echo signal
         while (GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 0) {
-//            timeout--;
-//
-//            if (timeout == 0) break;
+            timeout--;
+
+            if (timeout == 0) break;
         }
 
 //        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);

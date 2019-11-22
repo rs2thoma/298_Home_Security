@@ -102,8 +102,6 @@ void main(void)
 
     Timer_A_initContinuousMode(TIMER_A0_BASE, &timerParam);
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
-    uint16_t timer = Timer_A_getCounterValue(TIMER_A0_BASE);
-    uint16_t prevTime = timer;
 
     ultra_setRefs();
     const uint16_t* ultraRefs = ultra_getRefs();
@@ -143,9 +141,12 @@ void main(void)
 
             int32_t noise = ADCResult;
 
-            if (noise > micRef && !alarmOn) {
+            if (noise > micRef) {
+                if (!alarmOn) {
+                    first = true;
+                }
+
                 alarmOn = true;
-                first = true;
                 zonesTriggered[ULTRA1_ZONE] = true;
             }
 
@@ -168,9 +169,8 @@ void main(void)
         }
 
         // toggle LED every second
-        if (alarmOn && first/* && (timer - prevTime > 65000)*/) {
+        if (alarmOn && first) {
             first = false;
-            prevTime = timer;
 
            // if (ledOn) {
              //   GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
@@ -195,6 +195,7 @@ void main(void)
                 alarmOn = false;
                 first = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+
                 Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
                 Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
 
@@ -203,8 +204,6 @@ void main(void)
 //                micRef = 700;
             }
         }
-
-        timer = Timer_A_getCounterValue(TIMER_A0_BASE);
 
         switch(displayStatus)
         {
@@ -233,6 +232,7 @@ void main(void)
                 if(zonesTriggered[i])
                     zoneChar[i] = i + 1 + '0';
             }
+                showChar('T', pos1);
                 showChar(zoneChar[0], pos3);
                 showChar(zoneChar[1], pos4);
                 showChar(zoneChar[2], pos5);
@@ -248,7 +248,6 @@ void main(void)
             {
             case TIME:
                 clearLCD();
-                showChar('T', pos1);
                 displayStatus = ZONES_TRIGGERED;
                 break;
             case ZONES_TRIGGERED:
