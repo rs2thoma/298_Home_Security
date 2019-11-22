@@ -85,7 +85,8 @@ const uint16_t* ultra_getDistances()
         uint16_t diff = 0;
         if(timeout != 0)
             diff = end - start;
-
+        if(diff > 60000)
+            diff = 0;
         /*char ths = diff /1000;
         diff -= ths * 1000;
         char hun = diff /100;

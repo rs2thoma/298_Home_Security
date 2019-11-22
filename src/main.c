@@ -110,8 +110,8 @@ void main(void)
     const uint16_t micRef = 700;
     bool alarmOn = false;
     bool first = false;
-    enum {ZONES_ARMED, ZONES_TRIGGERED, TIME} displayStatus = TIME;
-    bool zonesTriggered[5] = {0,0,0,0};
+    enum {ZONES_TRIGGERED, TIME} displayStatus = TIME;
+    bool zonesTriggered[4] = {0,0,0,0};
     enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; //mic is in zone1
 
     __delay_cycles(1000000);
@@ -125,7 +125,7 @@ void main(void)
             volatile uint16_t dist = dists[i];
             volatile uint16_t ref = ultraRefs[i];
 
-            if (dists[i] != 0 && ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 2))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 2))))) {
+            if (dists[i] != 0 && ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 1))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 1))))) {
                 if (!alarmOn) {
                     first = true;
                 }
@@ -239,10 +239,6 @@ void main(void)
                 showChar(zoneChar[3], pos6);
             break;
         }
-        case ZONES_ARMED:
-        {
-            break;
-        }
 
 
         }
@@ -251,11 +247,6 @@ void main(void)
             switch(displayStatus)
             {
             case TIME:
-                clearLCD();
-                showChar('A', pos1);
-                displayStatus = ZONES_ARMED;
-                break;
-            case ZONES_ARMED:
                 clearLCD();
                 showChar('T', pos1);
                 displayStatus = ZONES_TRIGGERED;
