@@ -110,6 +110,9 @@ void main(void)
     const uint16_t micRef = 700;
     bool alarmOn = false;
     bool first = false;
+    enum {ZONES_ARMED, ZONES_TRIGGERED, TIME} displayStatus = TIME;
+    bool zonesTriggered[5] = {0,0,0,0};
+    enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; //mic is in zone1
 
     __delay_cycles(1000000);
 
@@ -126,7 +129,7 @@ void main(void)
                 if (!alarmOn) {
                     first = true;
                 }
-
+                zonesTriggered[i] = true;
                 alarmOn = true;
 
 
@@ -138,11 +141,12 @@ void main(void)
         if (ADCState == 0)
         {
 
-            int32_t noise = ADCResult; //3300/1023
+            int32_t noise = ADCResult;
 
             if (noise > micRef && !alarmOn) {
                 alarmOn = true;
                 first = true;
+                zonesTriggered[ULTRA1_ZONE] = true;
             }
 
 //            char ths = noise /1000;
@@ -185,6 +189,9 @@ void main(void)
             __delay_cycles(100);
             if(keypad_verifyCode())
             {
+                uint8_t i;
+                for(i = 0; i < NUM_ZONES; i++)
+                    zonesTriggered[i] = false;
                 alarmOn = false;
                 first = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
@@ -199,6 +206,67 @@ void main(void)
 
         timer = Timer_A_getCounterValue(TIMER_A0_BASE);
 
+        switch(displayStatus)
+        {
+        case TIME:
+        {
+            //__delay_cycles(100000);
+            uint32_t tmp = seconds;
+            char hun = tmp / 100;
+            tmp -= hun * 100;
+            char ten = tmp / 10;
+            tmp -= ten * 10;
+            char one = tmp % 10;
+
+            showChar((char) (hun) + '0', pos4);
+            showChar((char) (ten) + '0', pos5);
+            showChar((char) (one) + '0', pos6);
+            break;
+        }
+        case ZONES_TRIGGERED:
+        {
+            //__delay_cycles(100000);
+            char zoneChar[4] = {'X', 'X', 'X', 'X'};
+            uint8_t i;
+            for(i = 0; i < NUM_ZONES; i++)
+            {
+                if(zonesTriggered[i])
+                    zoneChar[i] = i + 1 + '0';
+            }
+                showChar(zoneChar[0], pos3);
+                showChar(zoneChar[1], pos4);
+                showChar(zoneChar[2], pos5);
+                showChar(zoneChar[3], pos6);
+            break;
+        }
+        case ZONES_ARMED:
+        {
+            break;
+        }
+
+
+        }
+        if(GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0)
+        {
+            switch(displayStatus)
+            {
+            case TIME:
+                clearLCD();
+                showChar('A', pos1);
+                displayStatus = ZONES_ARMED;
+                break;
+            case ZONES_ARMED:
+                clearLCD();
+                showChar('T', pos1);
+                displayStatus = ZONES_TRIGGERED;
+                break;
+            case ZONES_TRIGGERED:
+                clearLCD();
+                displayStatus = TIME;
+                break;
+            }
+            __delay_cycles(300000);
+        }
        // __delay_cycles(1000000);
     }
 
