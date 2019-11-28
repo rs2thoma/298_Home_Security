@@ -1,11 +1,18 @@
 #include "driverlib/driverlib.h"
+#include "driverlib/rtc.h"
 #include "hal_LCD.h"
 #include "stdint.h"
-#include "feasibility.h"
+#include "stdbool.h"
+#include "ultrasonic.h"
+#include "keypad.h"
 
 #define TIMER_A_PERIOD  1000 //T = 1/f = (TIMER_A_PERIOD * 1 us)
 #define HIGH_COUNT      500  //Number of cycles signal is high (Duty Cycle = HIGH_COUNT / TIMER_A_PERIOD)
 
+#define SW1_PORT        GPIO_PORT_P1
+#define SW1_PIN         GPIO_PIN2
+#define SW2_PORT        GPIO_PORT_P2
+#define SW2_PIN         GPIO_PIN6
 //Output pin to buzzer
 #define PWM_PORT        GPIO_PORT_P1
 #define PWM_PIN         GPIO_PIN7
@@ -35,9 +42,17 @@ Timer_A_outputPWMParam param; //Timer configuration data structure for PWM
 
 char ADCState = 0; //Busy state of the ADC
 int16_t ADCResult = 0; //Storage for the ADC conversion result
+uint32_t seconds = 0;
 
 void main(void)
 {
+
+    RTC_init(RTC_BASE, 1024,RTC_CLOCKPREDIVIDER_1024);
+    RTC_clearInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT_FLAG);
+    RTC_enableInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT);
+
+    //RTC_start(RTC_BASE, RTC_CLOCKSOURCE_XT1CLK);
+    RTC_start(RTC_BASE, RTC_CLOCKSOURCE_SMCLK);
 //    char buttonState = 0; //Current button press state (to allow edge detection)
 
     /*
@@ -76,52 +91,173 @@ void main(void)
     //All done initializations - turn interrupts back on.
     __enable_interrupt();
 
-    displayScrollText("ECE 298");
+   // displayScrollText("ECE 298");
+    Timer_A_initContinuousModeParam timerParam = {
+        .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
+        .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1,
+        .timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE,
+        .timerClear = TIMER_A_SKIP_CLEAR,
+        .startTimer = 0
+    };
 
-//    ultrasonicTest();
+    Timer_A_initContinuousMode(TIMER_A0_BASE, &timerParam);
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
 
-    keyPadTest();
+    ultra_setRefs();
+    const uint16_t* ultraRefs = ultra_getRefs();
+    const uint16_t micRef = 700;
+    bool alarmOn = false;
+    bool first = false;
+    enum {ZONES_TRIGGERED, TIME} displayStatus = TIME;
+    bool zonesTriggered[4] = {0,0,0,0};
+    enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; //mic is in zone1
 
-    while(1) //Do this when you want an infinite loop of code
+    __delay_cycles(1000000);
+
+    while(1)
     {
-        //Buttons SW1 and SW2 are active low (1 until pressed, then 0)
-        // if ((GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 1) & (buttonState == 0)) //Look for rising edge
-        // {
-        //     Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
-        //     buttonState = 1;                //Capture new button state
-        // }
-        // if ((GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0) & (buttonState == 1)) //Look for falling edge
-        // {
-        //     Timer_A_outputPWM(TIMER_A0_BASE, &param);   //Turn on PWM
-        //     buttonState = 0;                            //Capture new button state
-        // }
+        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
 
-        //Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
+        uint8_t i;
+        for(i = 0; i < NUM_ZONES; i++) {
+            volatile uint16_t dist = dists[i];
+            volatile uint16_t ref = ultraRefs[i];
+
+            if (dists[i] != 0 && ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 1))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 1))))) {
+                if (!alarmOn) {
+                    first = true;
+                }
+                zonesTriggered[i] = true;
+                alarmOn = true;
+
+
+                // display triggered zone
+            }
+        }
+
+//        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
         {
-            //test ADC - working
-            //volatile int32_t dvccValue = ((unsigned long)1023 * (unsigned long)150) / (unsigned long) (ADCResult);
-            int32_t dvccValue = ADCResult * 3.22f; //3300/1023
 
-            alarmTest(dvccValue, param);
+            int32_t noise = ADCResult;
 
-            char ths = dvccValue /1000;
-            dvccValue -= ths * 1000;
-            char hun = dvccValue /100;
-            dvccValue -= hun * 100;
-            char ten = dvccValue /10;
-            dvccValue -= ten * 10;
-            char one = dvccValue % 10;
+            if (noise > micRef) {
+                if (!alarmOn) {
+                    first = true;
+                }
 
-            showChar((char)(ths) + '0', pos3);
-            showChar((char)(hun) + '0', pos4);
-            showChar((char)(ten) + '0', pos5);
-            showChar((char)(one) + '0', pos6);
+                alarmOn = true;
+                zonesTriggered[ULTRA1_ZONE] = true;
+            }
+
+//            char ths = noise /1000;
+//            noise -= ths * 1000;
+//            char hun = noise /100;
+//            noise -= hun * 100;
+//            char ten = noise /10;
+//            noise -= ten * 10;
+//            char one = noise % 10;
+
+//            showChar((char)(ths) + '0', pos3);
+//            showChar((char)(hun) + '0', pos4);
+//            showChar((char)(ten) + '0', pos5);
+//            showChar((char)(one) + '0', pos6);
 
 //            showHex((int)ADCResult); //Put the previous result on the LCD display
             ADCState = 1; //Set flag to indicate ADC is busy - ADC ISR (interrupt) will clear it
             ADC_startConversion(ADC_BASE, ADC_SINGLECHANNEL);
         }
+
+        // toggle LED every second
+        if (alarmOn && first) {
+            first = false;
+
+           // if (ledOn) {
+             //   GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+               // Timer_A_stop(TIMER_A0_BASE);
+            //} else {
+                GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
+                Timer_A_outputPWM(TIMER_A0_BASE, &param);
+
+            //}
+            //ledOn = !ledOn;
+        }
+
+        // alarm re-armed
+        if(keypad_stopAlarmInput() && alarmOn)
+        {
+            __delay_cycles(100);
+            if(keypad_verifyCode())
+            {
+                uint8_t i;
+                for(i = 0; i < NUM_ZONES; i++)
+                    zonesTriggered[i] = false;
+                alarmOn = false;
+                first = false;
+                GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
+
+                Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
+                Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
+
+                ultra_setRefs();
+                ultraRefs = ultra_getRefs();
+//                micRef = 700;
+            }
+        }
+
+        switch(displayStatus)
+        {
+        case TIME:
+        {
+            //__delay_cycles(100000);
+            uint32_t tmp = seconds;
+            char hun = tmp / 100;
+            tmp -= hun * 100;
+            char ten = tmp / 10;
+            tmp -= ten * 10;
+            char one = tmp % 10;
+
+            showChar((char) (hun) + '0', pos4);
+            showChar((char) (ten) + '0', pos5);
+            showChar((char) (one) + '0', pos6);
+            break;
+        }
+        case ZONES_TRIGGERED:
+        {
+            //__delay_cycles(100000);
+            char zoneChar[4] = {'X', 'X', 'X', 'X'};
+            uint8_t i;
+            for(i = 0; i < NUM_ZONES; i++)
+            {
+                if(zonesTriggered[i])
+                    zoneChar[i] = i + 1 + '0';
+            }
+                showChar('T', pos1);
+                showChar(zoneChar[0], pos3);
+                showChar(zoneChar[1], pos4);
+                showChar(zoneChar[2], pos5);
+                showChar(zoneChar[3], pos6);
+            break;
+        }
+
+
+        }
+        if(GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0)
+        {
+            switch(displayStatus)
+            {
+            case TIME:
+                clearLCD();
+                displayStatus = ZONES_TRIGGERED;
+                break;
+            case ZONES_TRIGGERED:
+                clearLCD();
+                displayStatus = TIME;
+                break;
+            }
+            __delay_cycles(300000);
+        }
+       // __delay_cycles(1000000);
     }
 
     /*
@@ -155,18 +291,25 @@ void Init_GPIO(void)
     GPIO_setAsInputPin(GPIO_PORT_P1, GPIO_PIN4|GPIO_PIN5);
     GPIO_setAsInputPin(GPIO_PORT_P5, GPIO_PIN0|GPIO_PIN3);
 
-    //for ultrasonic
-    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN5);
-    GPIO_setAsInputPin(GPIO_PORT_P8, GPIO_PIN2);
+    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN7);
 
-    GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN7);
+    //for ultrasonic
+    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN7);
+    GPIO_setAsInputPin(GPIO_PORT_P8, GPIO_PIN0|GPIO_PIN2);
+    GPIO_setAsInputPin(GPIO_PORT_P2, GPIO_PIN5);
+    GPIO_setAsInputPin(GPIO_PORT_P5, GPIO_PIN1);
+
+    //for alarm
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN3);
+
+   /* GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P3, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
     GPIO_setAsOutputPin(GPIO_PORT_P7, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0|GPIO_PIN1|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
+    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0|GPIO_PIN1|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);*/
 
     //Set LaunchPad switches as inputs - they are active low, meaning '1' until pressed
     GPIO_setAsInputPinWithPullUpResistor(SW1_PORT, SW1_PIN);
@@ -188,7 +331,7 @@ void Init_Clock(void)
 
     /*
      * On the LaunchPad, there is a 32.768 kHz crystal oscillator used as a
-     * Real Time Clock (RTC). It is a quartz crystal connected to a circuit that
+     * Real Time Clock (RTC). It i+s a quartz crystal connected to a circuit that
      * resonates it. Since the frequency is a power of two, you can use the signal
      * to drive a counter, and you know that the bits represent binary fractions
      * of one second. You can then have the RTC module throw an interrupt based
@@ -363,3 +506,12 @@ void ADC_ISR(void)
         ADCResult = ADC_getResults(ADC_BASE);
     }
 }
+
+
+#pragma vector=RTC_VECTOR
+__interrupt
+void handle_rtc_interrupt(void)
+{
+    RTC_clearInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT_FLAG);
+    seconds++;
+}//ISR
