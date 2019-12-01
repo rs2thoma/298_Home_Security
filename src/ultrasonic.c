@@ -1,10 +1,3 @@
-/*
- * ultrasonic.c
- *
- *  Created on: Nov 19, 2019
- *      Author: Riley
- */
-
 #include "ultrasonic.h"
 #include "driverlib/driverlib.h"
 #include "hal_LCD.h"
@@ -35,15 +28,11 @@ void ultra_setRefs(void)
             if (timeout == 0) break;
         }
 
-//        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
         uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
         // wait until echo ends
         while(GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 1) ;
 
         uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
-//        Timer_A_stop(TIMER_A0_BASE);
-        // Timer_A_clear(TIMER_A0_BASE);
-
         uint16_t diff = end - start;
         refs[i] = diff;
     }
@@ -62,7 +51,6 @@ const uint16_t* ultra_getDistances()
     for(i = 0; i < NUM_ZONES; i++)
     {
         __delay_cycles(1000);
-
         uint32_t timeout = 30000;
         ultra_Trigger();
         // wait for ultrasonic echo signal
@@ -72,37 +60,16 @@ const uint16_t* ultra_getDistances()
             if (timeout == 0) break;
         }
 
-//        Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
         uint16_t start = Timer_A_getCounterValue(TIMER_A0_BASE);
         // wait until echo ends
         while(GPIO_getInputPinValue(echoPorts[i], echoPins[i]) == 1) ;
 
         uint16_t end = Timer_A_getCounterValue(TIMER_A0_BASE);
-//        Timer_A_stop(TIMER_A0_BASE);
-        // Timer_A_clear(TIMER_A0_BASE);
-
-        //display only works if diff is shifted
         uint16_t diff = 0;
         if(timeout != 0)
             diff = end - start;
         if(diff > 60000)
             diff = 0;
-        /*char ths = diff /1000;
-        diff -= ths * 1000;
-        char hun = diff /100;
-        diff -= hun * 100;
-        char ten = diff /10;
-        diff -= ten * 10;
-        char one = diff % 10;
-
-        showChar((char)(ths) + '0', pos1);
-        showChar((char)(hun) + '0', pos2);
-        showChar((char)(ten) + '0', pos3);
-        showChar((char)(one) + '0', pos4);
-        showChar('U', pos5);
-        showChar('S', pos6);*/
-
-    //    __delay_cycles(5000000);
 
         dists[i] = diff;
     }

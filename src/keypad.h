@@ -1,10 +1,3 @@
-/*
- * keypad.h
- *
- *  Created on: Nov 21, 2019
- *      Author: Riley
- */
-
 #ifndef KEYPAD_H_
 #define KEYPAD_H_
 

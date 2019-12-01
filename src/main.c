@@ -39,10 +39,9 @@ void Init_PWM(void);
 void Init_ADC(void);
 
 Timer_A_outputPWMParam param; //Timer configuration data structure for PWM
-
 char ADCState = 0; //Busy state of the ADC
 int16_t ADCResult = 0; //Storage for the ADC conversion result
-uint32_t seconds = 0;
+uint32_t seconds = 0; //program running time
 
 void main(void)
 {
@@ -50,19 +49,7 @@ void main(void)
     RTC_init(RTC_BASE, 1024,RTC_CLOCKPREDIVIDER_1024);
     RTC_clearInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT_FLAG);
     RTC_enableInterrupt(RTC_BASE, RTC_OVERFLOW_INTERRUPT);
-
-    //RTC_start(RTC_BASE, RTC_CLOCKSOURCE_XT1CLK);
     RTC_start(RTC_BASE, RTC_CLOCKSOURCE_SMCLK);
-//    char buttonState = 0; //Current button press state (to allow edge detection)
-
-    /*
-     * Functions with two underscores in front are called compiler intrinsics.
-     * They are documented in the compiler user guide, not the IDE or MCU guides.
-     * They are a shortcut to insert some assembly code that is not really
-     * expressible in plain C/C++. Google "MSP430 Optimizing C/C++ Compiler
-     * v18.12.0.LTS" and search for the word "intrinsic" if you want to know
-     * more.
-     * */
 
     //Turn off interrupts during initialization
     __disable_interrupt();
@@ -78,20 +65,12 @@ void main(void)
     Init_UART();    //Sets up an echo over a COM port
     Init_LCD();     //Sets up the LaunchPad LCD display
 
-     /*
-     * The MSP430 MCUs have a variety of low power modes. They can be almost
-     * completely off and turn back on only when an interrupt occurs. You can
-     * look up the power modes in the Family User Guide under the Power Management
-     * Module (PMM) section. You can see the available API calls in the DriverLib
-     * user guide, or see "pmm.h" in the driverlib directory. Unless you
-     * purposefully want to play with the power modes, just leave this command in.
-     */
     PMM_unlockLPM5(); //Disable the GPIO power-on default high-impedance mode to activate previously configured port settings
 
     //All done initializations - turn interrupts back on.
     __enable_interrupt();
 
-   // displayScrollText("ECE 298");
+    // initialize timer for ultrasonic sensors
     Timer_A_initContinuousModeParam timerParam = {
         .clockSource = TIMER_A_CLOCKSOURCE_SMCLK,
         .clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1,
@@ -99,7 +78,6 @@ void main(void)
         .timerClear = TIMER_A_SKIP_CLEAR,
         .startTimer = 0
     };
-
     Timer_A_initContinuousMode(TIMER_A0_BASE, &timerParam);
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
 
@@ -112,9 +90,7 @@ void main(void)
     bool first = false;
     enum {ZONES_TRIGGERED, TIME} displayStatus = TIME;
     bool zonesTriggered[4] = {0, 0, 0, 0};
-    enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; //mic is in zone1
-
-    __delay_cycles(1000000);
+    enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; // mic is in zone1
 
     while(1)
     {
@@ -122,22 +98,16 @@ void main(void)
 
         uint8_t i;
         for(i = 0; i < NUM_ZONES; i++) {
-            volatile uint16_t dist = dists[i];
-            volatile uint16_t ref = ultraRefs[i];
-
             if (dists[i] != 0 && ((dists[i] > (ultraRefs[i] + (ultraRefs[i] >> 1))) || (dists[i] < (ultraRefs[i] - (ultraRefs[i] >> 1))))) {
                 if (!alarmOn) {
                     first = true;
                 }
                 zonesTriggered[i] = true;
                 alarmOn = true;
-
-
-                // display triggered zone
             }
         }
 
-//        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
+        // Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
         {
             micBuffer[micBufferIndex] = ADCResult;
@@ -158,40 +128,18 @@ void main(void)
                 zonesTriggered[ULTRA1_ZONE] = true;
             }
 
-//            char ths = noise /1000;
-//            noise -= ths * 1000;
-//            char hun = noise /100;
-//            noise -= hun * 100;
-//            char ten = noise /10;
-//            noise -= ten * 10;
-//            char one = noise % 10;
-
-//            showChar((char)(ths) + '0', pos3);
-//            showChar((char)(hun) + '0', pos4);
-//            showChar((char)(ten) + '0', pos5);
-//            showChar((char)(one) + '0', pos6);
-
-//            showHex((int)ADCResult); //Put the previous result on the LCD display
             ADCState = 1; //Set flag to indicate ADC is busy - ADC ISR (interrupt) will clear it
             ADC_startConversion(ADC_BASE, ADC_SINGLECHANNEL);
         }
 
-        // toggle LED every second
+        // trigger alarm
         if (alarmOn && first) {
             first = false;
-
-           // if (ledOn) {
-             //   GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
-               // Timer_A_stop(TIMER_A0_BASE);
-            //} else {
-                GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
-                Timer_A_outputPWM(TIMER_A0_BASE, &param);
-
-            //}
-            //ledOn = !ledOn;
+            GPIO_setOutputHighOnPin(GPIO_PORT_P8, GPIO_PIN3);
+            Timer_A_outputPWM(TIMER_A0_BASE, &param);
         }
 
-        // alarm re-armed
+        // re-arm alarm
         if(keypad_stopAlarmInput() && alarmOn)
         {
             __delay_cycles(100);
@@ -200,84 +148,67 @@ void main(void)
                 uint8_t i;
                 for(i = 0; i < NUM_ZONES; i++)
                     zonesTriggered[i] = false;
+
                 alarmOn = false;
                 first = false;
                 GPIO_setOutputLowOnPin(GPIO_PORT_P8, GPIO_PIN3);
-
-                Timer_A_stop(TIMER_A0_BASE);    //Shut off PWM signal
+                Timer_A_stop(TIMER_A0_BASE);
                 Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_CONTINUOUS_MODE);
-
                 ultra_setRefs();
                 ultraRefs = ultra_getRefs();
-//                micRef = 700;
             }
         }
 
         switch(displayStatus)
         {
-        case TIME:
-        {
-            //__delay_cycles(100000);
-            uint32_t tmp = seconds;
-            char hun = tmp / 100;
-            tmp -= hun * 100;
-            char ten = tmp / 10;
-            tmp -= ten * 10;
-            char one = tmp % 10;
-
-            showChar((char) (hun) + '0', pos4);
-            showChar((char) (ten) + '0', pos5);
-            showChar((char) (one) + '0', pos6);
-            break;
-        }
-        case ZONES_TRIGGERED:
-        {
-            //__delay_cycles(100000);
-            char zoneChar[4] = {'X', 'X', 'X', 'X'};
-            uint8_t i;
-            for(i = 0; i < NUM_ZONES; i++)
+            case TIME:
             {
-                if(zonesTriggered[i])
-                    zoneChar[i] = i + 1 + '0';
+                uint32_t tmp = seconds;
+                char hun = tmp / 100;
+                tmp -= hun * 100;
+                char ten = tmp / 10;
+                tmp -= ten * 10;
+                char one = tmp % 10;
+
+                showChar((char) (hun) + '0', pos4);
+                showChar((char) (ten) + '0', pos5);
+                showChar((char) (one) + '0', pos6);
+                break;
             }
-                showChar('T', pos1);
-                showChar(zoneChar[0], pos3);
-                showChar(zoneChar[1], pos4);
-                showChar(zoneChar[2], pos5);
-                showChar(zoneChar[3], pos6);
-            break;
+            case ZONES_TRIGGERED:
+            {
+                char zoneChar[4] = {'X', 'X', 'X', 'X'};
+                uint8_t i;
+                for(i = 0; i < NUM_ZONES; i++)
+                {
+                    if(zonesTriggered[i])
+                        zoneChar[i] = i + 1 + '0';
+                }
+                    showChar('T', pos1);
+                    showChar(zoneChar[0], pos3);
+                    showChar(zoneChar[1], pos4);
+                    showChar(zoneChar[2], pos5);
+                    showChar(zoneChar[3], pos6);
+                break;
+            }
         }
 
-
-        }
         if(GPIO_getInputPinValue(SW1_PORT, SW1_PIN) == 0)
         {
             switch(displayStatus)
             {
-            case TIME:
-                clearLCD();
-                displayStatus = ZONES_TRIGGERED;
-                break;
-            case ZONES_TRIGGERED:
-                clearLCD();
-                displayStatus = TIME;
-                break;
+                case TIME:
+                    clearLCD();
+                    displayStatus = ZONES_TRIGGERED;
+                    break;
+                case ZONES_TRIGGERED:
+                    clearLCD();
+                    displayStatus = TIME;
+                    break;
             }
             __delay_cycles(300000);
         }
-       // __delay_cycles(1000000);
     }
-
-    /*
-     * You can use the following code if you plan on only using interrupts
-     * to handle all your system events since you don't need any infinite loop of code.
-     *
-     * //Enter LPM0 - interrupts only
-     * __bis_SR_register(LPM0_bits);
-     * //For debugger to let it know that you meant for there to be no more code
-     * __no_operation();
-    */
-
 }
 
 void Init_GPIO(void)
@@ -310,21 +241,11 @@ void Init_GPIO(void)
     //for alarm
     GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN3);
 
-   /* GPIO_setAsOutputPin(GPIO_PORT_P1, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P2, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P3, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P4, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P5, GPIO_PIN1|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P6, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P7, GPIO_PIN0|GPIO_PIN1|GPIO_PIN2|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);
-    GPIO_setAsOutputPin(GPIO_PORT_P8, GPIO_PIN0|GPIO_PIN1|GPIO_PIN3|GPIO_PIN4|GPIO_PIN5|GPIO_PIN6|GPIO_PIN7);*/
-
     //Set LaunchPad switches as inputs - they are active low, meaning '1' until pressed
     GPIO_setAsInputPinWithPullUpResistor(SW1_PORT, SW1_PIN);
     GPIO_setAsInputPinWithPullUpResistor(SW2_PORT, SW2_PIN);
 
-    //Set LED1 and LED2 as outputs
-    //GPIO_setAsOutputPin(LED1_PORT, LED1_PIN); //Comment if using UART
+    //Set LED as output
     GPIO_setAsOutputPin(LED2_PORT, LED2_PIN);
 }
 

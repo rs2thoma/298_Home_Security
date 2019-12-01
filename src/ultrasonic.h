@@ -1,10 +1,3 @@
-/*
- * ultrasonic.h
- *
- *  Created on: Nov 19, 2019
- *      Author: Riley
- */
-
 #ifndef ULTRASONIC_H_
 #define ULTRASONIC_H_
 
