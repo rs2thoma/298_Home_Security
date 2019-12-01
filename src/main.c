@@ -106,17 +106,19 @@ void main(void)
     ultra_setRefs();
     const uint16_t* ultraRefs = ultra_getRefs();
     const uint16_t micRef = 700;
+    uint16_t micBuffer[3] = {0, 0, 0};
+    uint8_t micBufferIndex = 0;
     bool alarmOn = false;
     bool first = false;
     enum {ZONES_TRIGGERED, TIME} displayStatus = TIME;
-    bool zonesTriggered[4] = {0,0,0,0};
+    bool zonesTriggered[4] = {0, 0, 0, 0};
     enum zoneIndex {ULTRA1_ZONE = 0, ULTRA2_ZONE, ULTRA3_ZONE, ULTRA4_ZONE}; //mic is in zone1
 
     __delay_cycles(1000000);
 
     while(1)
     {
-        const uint16_t* dists = ultra_getDistances(ULTRA1_ECHO_PORT, ULTRA1_ECHO_PIN);
+        const uint16_t* dists = ultra_getDistances();
 
         uint8_t i;
         for(i = 0; i < NUM_ZONES; i++) {
@@ -138,10 +140,16 @@ void main(void)
 //        Start an ADC conversion (if it's not busy) in Single-Channel, Single Conversion Mode
         if (ADCState == 0)
         {
+            micBuffer[micBufferIndex] = ADCResult;
+            micBufferIndex = (micBufferIndex + 1) % 3;
 
-            int32_t noise = ADCResult;
+            uint16_t avgNoise = 0;
+            uint8_t i;
+            for(i = 0; i < 3; i++){
+                avgNoise += micBuffer[i] / 3;
+            }
 
-            if (noise > micRef) {
+            if (avgNoise > micRef) {
                 if (!alarmOn) {
                     first = true;
                 }
